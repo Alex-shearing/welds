@@ -3,6 +3,7 @@ use welds::Client;
 use welds::detect::find_table;
 use welds::errors::Result;
 use welds::migrations::prelude::*;
+use welds::migrations::types::OnDelete;
 
 /************************************************
 * two migrations shouldn't have the same name

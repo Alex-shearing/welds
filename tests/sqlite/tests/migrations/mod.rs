@@ -5,6 +5,7 @@ use welds::errors::Result;
 use welds::migrations::MigrationFn;
 use welds::migrations::MigrationStep;
 use welds::migrations::types::Type;
+use welds::migrations::types::OnDelete;
 use welds::migrations::{TableState, change_table, create_table};
 use welds::migrations::{down_last, up};
 
