@@ -337,14 +337,14 @@ fn should_be_able_to_add_a_column() {
 
 fn test_create_primary_key_as_foreign_key_migration_main(_state: &TableState) -> Result<MigrationStep> {
     let m = create_table("fk_on_pk_main")
-        .id(|c| c("id", Type::Int).create_foreign_key("blarf", "id", OnDelete::Cascade));
-    Ok(MigrationStep::new("Create Blarf Table", m))
+        .id(|c| c("id", Type::Int));
+    Ok(MigrationStep::new("Create Main Table", m))
 }
 
 fn test_create_primary_key_as_foreign_key_migration_second(_state: &TableState) -> Result<MigrationStep> {
     let m = create_table("fk_on_pk_second")
         .id(|c| c("id", Type::Int).create_foreign_key("fk_on_pk_main", "id", OnDelete::Cascade));
-    Ok(MigrationStep::new("Create Blarf Table", m))
+    Ok(MigrationStep::new("Create Secondary Table", m))
 }
 
 #[test]
