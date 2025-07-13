@@ -407,9 +407,15 @@ async fn creating_a_fk_to_table_should_be_ok_test() {
 * Test creating a primary key that is also a foreign key
 * **********************************************/
 
-fn test_create_primary_key_as_foreign_key_migration(_state: &TableState) -> Result<MigrationStep> {
-    let m = create_table("blarf_fk")
+fn test_create_primary_key_as_foreign_key_migration_main(_state: &TableState) -> Result<MigrationStep> {
+    let m = create_table("fk_on_pk_main")
         .id(|c| c("id", Type::Int).create_foreign_key("blarf", "id", OnDelete::Cascade));
+    Ok(MigrationStep::new("Create Blarf Table", m))
+}
+
+fn test_create_primary_key_as_foreign_key_migration_second(_state: &TableState) -> Result<MigrationStep> {
+    let m = create_table("fk_on_pk_second")
+        .id(|c| c("id", Type::Int).create_foreign_key("fk_on_pk_main", "id", OnDelete::Cascade));
     Ok(MigrationStep::new("Create Blarf Table", m))
 }
 
@@ -419,30 +425,42 @@ fn should_be_able_to_create_a_pk_that_is_pk() {
         let client = get_conn().await;
         let client = &client;
 
-        // make sure the table doesn't exist
-        let table = find_table(None as Option<&str>, "blarf_fk", client)
+        // make sure the tables doesn't exist
+        let table_main = find_table(None as Option<&str>, "fk_on_pk_main", client)
+            .await
+            .unwrap();
+        let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
             .await
             .unwrap();
         assert!(table.is_none());
+        assert!(table_secondary.is_none());
 
         // Run the migration
-        let list: Vec<MigrationFn> = vec![test_create_table_migration, test_create_primary_key_as_foreign_key_migration];
+        let list: Vec<MigrationFn> = vec![test_create_primary_key_as_foreign_key_migration_main, test_create_primary_key_as_foreign_key_migration_second];
         up(client, list.as_slice()).await.unwrap();
 
-        // make sure the table exists
-        let table = find_table(None as Option<&str>, "blarf_fk", client)
+        // make sure the tables exists
+        let table_main = find_table(None as Option<&str>, "fk_on_pk_main", client)
             .await
             .unwrap();
-        assert!(table.is_some());
+        let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
+            .await
+            .unwrap();
+        assert!(table_main.is_some());
+        assert!(table_secondary.is_some());
 
         // down the migrations
-        down(client, "test_create_primary_key_as_foreign_key_migration").await.unwrap();
-        down(client, "test_create_table_migration").await.unwrap();
+        down(client, "test_create_primary_key_as_foreign_key_migration_second").await.unwrap();
+        down(client, "test_create_primary_key_as_foreign_key_migration_main").await.unwrap();
 
-        // make sure the table doesn't exist
-        let table = find_table(None as Option<&str>, "blarf_fk", client)
+        // make sure the tables doesn't exist
+        let table_main = find_table(None as Option<&str>, "fk_on_pk_main", client)
+            .await
+            .unwrap();
+        let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
             .await
             .unwrap();
         assert!(table.is_none());
+        assert!(table_secondary.is_none());
     })
 }
