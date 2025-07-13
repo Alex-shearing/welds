@@ -3,6 +3,7 @@ use welds::Client;
 use welds::detect::find_table;
 use welds::errors::Result;
 use welds::migrations::prelude::*;
+use welds::migrations::types::OnDelete;
 
 /************************************************
 * two migrations shouldn't have the same name
@@ -419,5 +420,67 @@ fn creating_a_fk_to_table_should_be_ok_test() {
         let result = up(client, list.as_slice()).await;
 
         assert!(result.is_ok());
+    })
+}
+
+/************************************************
+* Test creating a primary key that is also a foreign key
+* **********************************************/
+
+fn test_create_primary_key_as_foreign_key_migration_main(_state: &TableState) -> Result<MigrationStep> {
+    let m = create_table("fk_on_pk_main")
+        .id(|c| c("id", Type::Int));
+    Ok(MigrationStep::new("test_create_primary_key_as_foreign_key_migration_main", m))
+}
+
+fn test_create_primary_key_as_foreign_key_migration_second(_state: &TableState) -> Result<MigrationStep> {
+    let m = create_table("fk_on_pk_second")
+        .id(|c| c("id", Type::Int).create_foreign_key("fk_on_pk_main", "id", OnDelete::Cascade));
+    Ok(MigrationStep::new("test_create_primary_key_as_foreign_key_migration_second", m))
+}
+
+#[test]
+fn should_be_able_to_create_a_pk_that_is_pk() {
+    async_std::task::block_on(async {
+        let client = get_conn().await;
+        let client = &client;
+
+        // make sure the tables doesn't exist
+        let table_main = find_table(None as Option<&str>, "fk_on_pk_main", client)
+            .await
+            .unwrap();
+        let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
+            .await
+            .unwrap();
+        assert!(table_main.is_none());
+        assert!(table_secondary.is_none());
+
+        // Run the migration
+        let list: Vec<MigrationFn> = vec![test_create_primary_key_as_foreign_key_migration_main, test_create_primary_key_as_foreign_key_migration_second];
+        up(client, list.as_slice()).await.unwrap();
+
+        // make sure the tables exists
+        let table_main = find_table(None as Option<&str>, "fk_on_pk_main", client)
+            .await
+            .unwrap();
+        let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
+            .await
+            .unwrap();
+        assert!(table_main.is_some());
+        assert!(table_secondary.is_some());
+
+        // down the migrations
+        down(client, "test_create_primary_key_as_foreign_key_migration_second").await.unwrap();
+        down(client, "test_create_primary_key_as_foreign_key_migration_main").await.unwrap();
+
+        // make sure the tables doesn't exist
+        let table_main = find_table(None as Option<&str>, "fk_on_pk_main", client)
+            .await
+            .unwrap();
+        let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
+            .await
+            .unwrap();
+        assert!(table_main.is_none());
+        assert!(table_secondary.is_none());
     })
 }
