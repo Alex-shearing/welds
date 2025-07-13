@@ -410,7 +410,7 @@ fn should_be_able_to_create_a_pk_that_is_pk() {
         let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
             .await
             .unwrap();
-        assert!(table.is_none());
+        assert!(table_main.is_none());
         assert!(table_secondary.is_none());
 
         // Run the migration
@@ -438,7 +438,7 @@ fn should_be_able_to_create_a_pk_that_is_pk() {
         let table_secondary = find_table(None as Option<&str>, "fk_on_pk_second", client)
             .await
             .unwrap();
-        assert!(table.is_none());
+        assert!(table_main.is_none());
         assert!(table_secondary.is_none());
     })
 }
