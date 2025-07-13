@@ -20,6 +20,8 @@ pub fn from_def(syntax: Syntax, def: &TableDef) -> Vec<String> {
         let col = IdBuilder {
             name: c.name.to_string(),
             ty: Type::parse_db_type(syntax, pk_type),
+            index: None,
+            index_name: None,
         };
         columns.push(build_id_column(syntax, &col))
     }
@@ -53,6 +55,19 @@ pub fn from_builder(syntax: Syntax, tb: &TableBuilder) -> Vec<String> {
     let index_cols = tb.columns.iter().filter(|c| c.index.is_some());
     for col in index_cols {
         parts.push(create_index(syntax, &tb.ident, col));
+    }
+    if tb.pk.index.is_some() {
+        parts.push(create_index(
+            syntax,
+            &tb.ident,
+            &ColumnBuilder {
+                name: tb.pk.name.clone(),
+                ty: tb.pk.ty.clone(),
+                nullable: false,
+                index: tb.pk.index.clone(),
+                index_name: None,
+            },
+        ));
     }
     parts
 }
