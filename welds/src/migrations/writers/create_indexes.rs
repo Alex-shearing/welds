@@ -40,18 +40,13 @@ fn write_fk(
         return String::default();
     }
 
-    let on_delete_str = match on_delete {
-        OnDelete::Cascade => "CASCADE",
-        OnDelete::SetNull => "SET NULL",
-        OnDelete::SetDefault => "SET DEFAULT",
-        OnDelete::Restrict => {
-            if syntax == Syntax::Mssql {
-                "NO ACTION"
-            } else {
-                "RESTRICT"
-            }
-        }
-        OnDelete::NoAction => "NO ACTION",
+    let on_delete_str = match (on_delete, syntax) {
+        (OnDelete::Cascade, _) => "CASCADE",
+        (OnDelete::SetNull, _) => "SET NULL",
+        (OnDelete::SetDefault, _) => "SET DEFAULT",
+        (OnDelete::Restrict, Syntax::Mssql) => "NO ACTION",
+        (OnDelete::Restrict, _) => "RESTRICT",
+        (OnDelete::NoAction, _) => "NO ACTION",
     };
 
     let indexname = match &col.index_name {
