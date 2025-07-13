@@ -458,7 +458,7 @@ fn should_be_able_to_create_a_pk_that_is_pk() {
 
         // down the migrations
         down(client, "test_create_primary_key_as_foreign_key_migration").await.unwrap();
-        down(client, "test_create_table_migration").await.unwrap()
+        down(client, "test_create_table_migration").await.unwrap();
 
         // make sure the table doesn't exist
         let table = find_table(None as Option<&str>, "blarf_fk", client)
