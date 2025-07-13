@@ -430,13 +430,13 @@ fn creating_a_fk_to_table_should_be_ok_test() {
 fn test_create_primary_key_as_foreign_key_migration_main(_state: &TableState) -> Result<MigrationStep> {
     let m = create_table("fk_on_pk_main")
         .id(|c| c("id", Type::Int));
-    Ok(MigrationStep::new("Create Main Table", m))
+    Ok(MigrationStep::new("test_create_primary_key_as_foreign_key_migration_main", m))
 }
 
 fn test_create_primary_key_as_foreign_key_migration_second(_state: &TableState) -> Result<MigrationStep> {
     let m = create_table("fk_on_pk_second")
         .id(|c| c("id", Type::Int).create_foreign_key("fk_on_pk_main", "id", OnDelete::Cascade));
-    Ok(MigrationStep::new("Create Secondary Table", m))
+    Ok(MigrationStep::new("test_create_primary_key_as_foreign_key_migration_second", m))
 }
 
 #[test]
