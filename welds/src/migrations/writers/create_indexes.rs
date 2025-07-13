@@ -44,7 +44,13 @@ fn write_fk(
         OnDelete::Cascade => "CASCADE",
         OnDelete::SetNull => "SET NULL",
         OnDelete::SetDefault => "SET DEFAULT",
-        OnDelete::Restrict => "RESTRICT",
+        OnDelete::Restrict => {
+            if syntax == Syntax::Mssql {
+                "NO ACTION"
+            } else {
+                "RESTRICT"
+            }
+        }
         OnDelete::NoAction => "NO ACTION",
     };
 
