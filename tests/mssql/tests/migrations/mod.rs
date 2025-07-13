@@ -401,3 +401,46 @@ async fn creating_a_fk_to_table_should_be_ok_test() {
 
     assert!(result.is_ok());
 }
+
+/************************************************
+* Test creating a primary key that is also a foreign key
+* **********************************************/
+
+fn test_create_primary_key_as_foreign_key_migration(_state: &TableState) -> Result<MigrationStep> {
+    let m = create_table("blarf_fk")
+        .id(|c| c("id", Type::Int).create_foreign_key("blarf", "id", OnDelete::Cascade));
+    Ok(MigrationStep::new("Create Blarf Table", m))
+}
+
+#[test]
+fn should_be_able_to_create_a_pk_that_is_pk() {
+    async_std::task::block_on(async {
+        let client = get_conn().await;
+        let client = &client;
+
+        // make sure the table doesn't exist
+        let table = find_table(None as Option<&str>, "blarf_fk", client)
+            .await
+            .unwrap();
+        assert!(table.is_none());
+
+        // Run the migration
+        let list: Vec<MigrationFn> = vec![test_create_table_migration, test_create_primary_key_as_foreign_key_migration];
+        up(client, list.as_slice()).await.unwrap();
+
+        // make sure the table exists
+        let table = find_table(None as Option<&str>, "blarf_fk", client)
+            .await
+            .unwrap();
+        assert!(table.is_some());
+
+        // down the migration
+        down_last(client).await.unwrap();
+
+        // make sure the table doesn't exist
+        let table = find_table(None as Option<&str>, "blarf_fk", client)
+            .await
+            .unwrap();
+        assert!(table.is_none());
+    })
+}

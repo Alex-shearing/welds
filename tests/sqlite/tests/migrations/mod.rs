@@ -330,8 +330,6 @@ fn should_be_able_to_add_a_column() {
     })
 }
 
-
-
 /************************************************
 * Test creating a primary key that is also a foreign key
 * **********************************************/
@@ -343,7 +341,7 @@ fn test_create_primary_key_as_foreign_key_migration(_state: &TableState) -> Resu
 }
 
 #[test]
-fn should_be_able_to_create_a_table() {
+fn should_be_able_to_create_a_pk_that_is_pk() {
     async_std::task::block_on(async {
         let client = get_conn().await;
         let client = &client;
