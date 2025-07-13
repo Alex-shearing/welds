@@ -415,7 +415,7 @@ fn test_create_primary_key_as_foreign_key_migration_main(_state: &TableState) ->
 
 fn test_create_primary_key_as_foreign_key_migration_second(_state: &TableState) -> Result<MigrationStep> {
     let m = create_table("fk_on_pk_second")
-        .id(|c| c("id", Type::Int).create_foreign_key("fk_on_pk_main", "id", OnDelete::Cascade));
+        .id(|c| c("id", Type::Int).create_foreign_key("fk_on_pk_main", "id", OnDelete::Restrict));
     Ok(MigrationStep::new("test_create_primary_key_as_foreign_key_migration_second", m))
 }
 
